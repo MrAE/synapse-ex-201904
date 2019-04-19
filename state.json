@@ -1,0 +1,144 @@
+{
+  "layers": [
+    {
+      "source": "boss://https://api.boss.neurodata.io/collman/M247514_Rorb_1_Take2Site3_EMA/DCV_FF_Session1_PSD95?window=0,10000",
+      "type": "image",
+      "opacity": 1,
+      "blend": "additive",
+      "color": "#3cb44b",
+      "name": "DCV_FF_Session1_PSD95"
+    },
+    {
+      "source": "boss://https://api.boss.neurodata.io/collman/M247514_Rorb_1_Take2Site3_EMA/DCV_FF_Session3_synapsin?window=0,10000",
+      "type": "image",
+      "opacity": 1,
+      "blend": "additive",
+      "color": "#c30eeb",
+      "name": "DCV_FF_Session3_synapsin"
+    },
+    {
+      "source": "boss://https://api.boss.neurodata.io/collman/M247514_Rorb_1_Take2Site3_EMA/DCV_FF_Session1_VGlut1?window=0,10000",
+      "type": "image",
+      "opacity": 1,
+      "blend": "additive",
+      "color": "#ffe119",
+      "name": "DCV_FF_Session1_VGlut1",
+      "visible": false
+    },
+    {
+      "source": "boss://https://api.boss.neurodata.io/collman/M247514_Rorb_1_Take2Site3_EMA/DCV_FF_Session1_Gephyrin?window=0,10000",
+      "type": "image",
+      "opacity": 1,
+      "blend": "additive",
+      "color": "#e6194b",
+      "name": "DCV_FF_Session1_Gephyrin",
+      "visible": false
+    },
+    {
+      "source": "boss://https://api.boss.neurodata.io/collman/M247514_Rorb_1_Take2Site3_EMA/DCV_FF_Session1_DAPI1?window=0,10000",
+      "type": "image",
+      "opacity": 1,
+      "blend": "additive",
+      "name": "DCV_FF_Session1_DAPI1",
+      "visible": false
+    },
+    {
+      "source": "boss://https://api.boss.neurodata.io/collman/M247514_Rorb_1_Take2Site3_EMA/DCV_FF_Session2_DAPI2?window=0,10000",
+      "type": "image",
+      "opacity": 1,
+      "blend": "additive",
+      "color": "#4363d8",
+      "name": "DCV_FF_Session2_DAPI2",
+      "visible": false
+    },
+    {
+      "source": "boss://https://api.boss.neurodata.io/collman/M247514_Rorb_1_Take2Site3_EMA/DCV_FF_Session2_GAD2?window=0,10000",
+      "type": "image",
+      "opacity": 1,
+      "blend": "additive",
+      "color": "#f58231",
+      "name": "DCV_FF_Session2_GAD2",
+      "visible": false
+    },
+    {
+      "source": "boss://https://api.boss.neurodata.io/collman/M247514_Rorb_1_Take2Site3_EMA/DCV_FF_Session2_GluN1?window=0,10000",
+      "type": "image",
+      "opacity": 1,
+      "blend": "additive",
+      "color": "#911eb4",
+      "name": "DCV_FF_Session2_GluN1",
+      "visible": false
+    },
+    {
+      "source": "boss://https://api.boss.neurodata.io/collman/M247514_Rorb_1_Take2Site3_EMA/DCV_FF_Session2_TdTomato?window=0,10000",
+      "type": "image",
+      "opacity": 1,
+      "blend": "additive",
+      "color": "#46f0f0",
+      "name": "DCV_FF_Session2_TdTomato",
+      "visible": false
+    },
+    {
+      "source": "boss://https://api.boss.neurodata.io/collman/M247514_Rorb_1_Take2Site3_EMA/DCV_FF_Session3_DAPI3?window=0,10000",
+      "type": "image",
+      "opacity": 1,
+      "blend": "additive",
+      "color": "#f032e6",
+      "name": "DCV_FF_Session3_DAPI3",
+      "visible": false
+    },
+    {
+      "source": "boss://https://api.boss.neurodata.io/collman/M247514_Rorb_1_Take2Site3_EMA/DCV_FF_Session3_GABA?window=0,10000",
+      "type": "image",
+      "opacity": 1,
+      "blend": "additive",
+      "color": "#bcf60c",
+      "name": "DCV_FF_Session3_GABA",
+      "visible": false
+    },
+    {
+      "source": "boss://https://api.boss.neurodata.io/collman/M247514_Rorb_1_Take2Site3_EMA/DCV_FF_Session3_MBP?window=0,10000",
+      "type": "image",
+      "opacity": 1,
+      "blend": "additive",
+      "color": "#fabebe",
+      "name": "DCV_FF_Session3_MBP",
+      "visible": false
+    },
+    {
+      "source": "boss://https://api.boss.neurodata.io/collman/M247514_Rorb_1_Take2Site3_EMA_EM/EMclahe",
+      "type": "image",
+      "name": "EMclahe"
+    },
+    {
+      "source": "precomputed://https://synaptomes1.neurodata.io/public/synaptomes/m247514_Take2Site3Annotation",
+      "type": "segmentation",
+      "selectedAlpha": 1,
+      "colorSeed": 2913975370,
+      "name": "m247514_Take2Site3Annotation"
+    }
+  ],
+  "navigation": {
+    "pose": {
+      "position": {
+        "voxelSize": [
+          96,
+          96,
+          50
+        ],
+        "voxelCoordinates": [
+          2236.51904296875,
+          2345.577880859375,
+          22
+        ]
+      }
+    },
+    "zoomFactor": 3.125
+  },
+  "perspectiveZoom": 8,
+  "selectedLayer": {
+    "layer": "DCV_FF_Session3_synapsin",
+    "visible": true
+  },
+  "layout": "4panel"
+}
