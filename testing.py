@@ -227,10 +227,10 @@ if __name__ == "__main__":
 
 
 #%%
-    for ch in [CHAN_NAMES[-1]]:
+    for ch in CHAN_NAMES:
         Args = [[[names[i], rem, collection, experiment, ch]] for i in names]
         print(ch)
-        with ThreadPool(8) as thb:
+        with ThreadPool(12) as thb:
             thb.starmap(drone, Args)
 
 
