@@ -230,6 +230,6 @@ for ch in CHAN_NAMES:
     print(ch)
     for i in names:
     #Args = [[i, rem, collection, experiment, ch] for i in names]
-    Args = [i, rem, collection, experiment, ch]
-    drone(Args)
+        Args = [i, rem, collection, experiment, ch]
+        drone(Args)
 
