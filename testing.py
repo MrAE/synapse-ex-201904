@@ -7,31 +7,33 @@ from intern.remote.boss import BossRemote
 from intern.resource.boss.resource import *
 from intern.utils.parallel import block_compute
 import configparser
-import requests
 import numpy as np
-from numpy import genfromtxt
-import shutil
-from IPython.core.debugger import set_trace
-import sys
-import os
-import itertools
-from functools import partial
+import pickle
+from shapely import geometry
+import shapely
+import seaborn
 from multiprocessing import Pool
 from multiprocessing.dummy import Pool as ThreadPool
 from multiprocessing import cpu_count
-from intern.utils.parallel import block_compute
-%matplotlib inline
-import matplotlib
-import matplotlib.pyplot as plt
-import collections
-import json
-import pickle
-from pathlib import Path
-from pprint import pprint
-import cv2
-from mpl_toolkits.mplot3d import Axes3D
-from shapely import geometry
-import seaborn
+#import requests
+#from numpy import genfromtxt
+#import shutil
+#from IPython.core.debugger import set_trace
+#import sys
+#import os
+#import itertools
+#from functools import partial
+#from intern.utils.parallel import block_compute
+#%matplotlib inline
+#import matplotlib
+#import matplotlib.pyplot as plt
+#import collections
+#import json
+#import pickle
+#from pathlib import Path
+#from pprint import pprint
+#import cv2
+#from mpl_toolkits.mplot3d import Axes3D
 #from cloudvolume import CloudVolume
 #from tqdm import tqdm
 
@@ -135,17 +137,59 @@ class Synapse:
         return f"id: {self.id}\nareas: {self.areas}\n"
 
 #%%
+
 class AugmentedSynapse:
     def __init__(self, id):
         self.id = id
         self.areas = geometry.MultiPolygon()
+        self.anno_array = np.array(0)
         self.array = np.array(0)
         self.anno_bounding_box = set()
         self.bounding_box = set()
+        self.channels = {}
+
+
+    def save(self):
+        return (self.__class__, self.__dict__)
+
+
+    def load(cls, attributes):
+        obj = cls.__new__(cls)
+        obj.__dict__.update(attributes)
+        return(obj)
 
     def __str__(self):
         return f"id: {self.id}\nareas: {self.areas}\n"
 
+
+    def setSynapse(self, Synapse, trans = [32, 32, 32, 32, 1, 1]):
+        self.id = Synapse.id
+        self.areas = shapely.affinity.scale(Synapse.areas, yfact = -1)
+        self.anno_bounding_box = Synapse.bounding_box
+        self.bounding_box = [int (Synapse.bounding_box[i] / trans[i]) for i in range(len(trans))]
+        self.anno_array = np.transpose(Synapse.array)
+        
+    
+    def getChannel(self, rem, collection, experiment, ch):
+        ''' I doubt this is the best way to do this. '''
+        di = {
+            'rem': rem,
+            'ch_rsc': ChannelResource(ch, collection, experiment, 'image',
+                                      datatype='uint16'),
+            'ch': ch,
+            'res': 0,
+            'xrng': self.bounding_box[0:2] + np.array([0,1]), # Had to augment to get the last pixel 
+            'yrng': self.bounding_box[2:4] + np.array([0,1]), # Had to augment to get the last pixel 
+            'zrng': self.bounding_box[4:6], 
+        }
+        block = di['rem'].get_cutout(di['ch_rsc'], di['res'], di['xrng'], di['yrng'] ,di['zrng'])
+        self.channels[str(ch)] = block
+
+
+
+def worker(arg):
+    obj, rem, collection, experiment, ch = arg
+    return obj.getChannel(rem, collection, experiment, ch)
 
 #%%
 fname = "m247514_Take2Site3Annotation_completed_Feb2018_MN_global_synapse_dict.p"
@@ -154,17 +198,161 @@ with open(fname, 'rb') as f:
     data = pickle.load(f)
 
 
+
+#%%
+W = {i : AugmentedSynapse(i) for i in data}
+
+for w in W:
+    W[w].setSynapse(data[W[w].id])
+
+names = {i: "outputs/id" + str(i).zfill(3) + ".pickle" for i in W}
+
+
+
+#%%
+for i in names:
+    with open(names[i], "wb") as f:
+        pickle.dump(W[i], f, pickle.HIGHEST_PROTOCOL)
+
+
+#%%
+def drone(args):
+    fname, rem, collection, experiment, ch = args
+    print("Loading object:")
+    with open(fname, "rb") as f:
+        obj = pickle.load(f)
+
+    print("retrieving BOSS data:")
+    obj.getChannel(rem, collection, experiment, ch)
+
+    print("saving object:")
+    with open(fname, "wb") as fout:
+        pickle.dump(obj, fout, pickle.HIGHEST_PROTOCOL)
+    
+
+
+#%%
+for ch in [CHAN_NAMES[-1]]:
+    Args = [[i, rem, collection, experiment, ch] for i in names]
+    with ThreadPool(6) as tpb:
+    ##    out = tpb.map(drone, )
+        tpb.starmap(drone, Args)
+
+
+#### ALL good above this line
+#### Testing below
+
+#%%
+i = 1
+with open(names[i], "wb") as f:
+    pickle.dump(W[i], f, pickle.HIGHEST_PROTOCOL)
+
+#%%
+with open(names[1], 'rb') as f:
+    win = pickle.load(f)
+
+#%%
+j = 123
+W[j].getChannel(rem, collection, experiment, CHAN_NAMES[2])
+W[j].getChannel(rem, collection, experiment, CHAN_NAMES[-1])
+W[j].channels
+
+#%%
+W[j].bounding_box
+
+
+#%%
+W[j].areas
+
+#%%
+W[j].anno_array.shape
+
+#%%
+H = np.hstack([W[j].channels[CHAN_NAMES[2]], W[j].channels[CHAN_NAMES[-1]]])
+H.shape
+
+#%%
+W[j].channels[CHAN_NAMES[2]]
+
+
+
+
+#%%
+W[j].bounding_box
+
+#%%
+dx = W[j].bounding_box[1] - W[j].bounding_box[0]
+dy = W[j].bounding_box[3] - W[j].bounding_box[2]
+dz = W[j].bounding_box[5] - W[j].bounding_box[4]
+
+
+WJarray = np.zeros(dx, dy, dz)
+
+nw = np.where(W[j].anno_array == W[j].id)
+
+xs = nw[0] 
+ys = nw[1]
+zs = nw[2]
+
+
+
+#%%
+A.getChannel(rem, collection, experiment, CHAN_NAMES[-1])
+
+#%%
+with ThreadPool(4) as tpb:
+        #out = tpb.map(getID, ba, bb, bc)
+        #out = tpb.starmap(getID, blocks)
+
+#%%
+#%%
+#%%
+#%%
+#%%
+
+
+
+
+#%%
+fig, axs = plt.subplots(nrows = 3)
+tmp = 1
+for names in w.channels:
+    seaborn.heatmap(w.channels[names][0, ::], tmp)
+
+
+#%%
+
+np.max(w.channels[CHAN_NAMES[2]][2, :, :])
+
+#%%
+fig, axs = plt.subplots(ncols=1)
+a = w.channels[CHAN_NAMES[-1]]
+
+b = np.vstack([a[0, ::], a[1, ::], a[2, ::]])
+seaborn.heatmap(b)
+
+#%%
+fig, axs = plt.subplots(ncols=3)
+w.areas[0]
+w.areas[1]
+w.areas[2]
+
+#%%
+
+w = {id : AugmentedSynapse(id) for id in data}
+
+for id in data:
+    w[id].setSynapse(data[id])
+
+
+
+
+
 #%%
 print(data[j].bounding_box)
 print(data[j].bounding_box[0:2])
 print(data[j].bounding_box[2:4])
 print(data[j].bounding_box[4:6])
-
-
-#%%
-def toNumpyMask():
-
-    return(0)
 
 
 
@@ -212,90 +400,6 @@ block = dim['rem'].get_cutout(dim['ch_rsc'], dim['res'], dim['xrng'], dim['yrng'
 
 
 
-#%%
-fig, axs = plt.subplots(ncols=3)
-seaborn.heatmap(block[0], ax = axs[0])
-seaborn.heatmap(block[1], ax = axs[1])
-seaborn.heatmap(block[2], ax = axs[2])
-
-#%%
-CHAN_NAMES
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-#%%
-j = 551
-d = data[j]
-
-fig, axs = plt.subplots(nrows = d.array.shape[2])
-for i in range(d.array.shape[2]):
-    a = d.array[:, :, i]
-    seaborn.heatmap(np.transpose(a), ax = axs[i])
-
-#%%
-class AugSynapse:
-    def __init__(self, id):
-        self.id = id
-        self.areas = geometry.MultiPolygon()
-        self.array = np.array(0)
-        self.mask = np.array(0)
-        self.em_bounding_box = set()
-        self.at_bounding_box = set()
-
-    def __str__(self):
-        return f"id: {self.id}\nareas: {self.areas}\n"
-
-    def em2at(resTrans):
-        self.at_bounding_box = \
-            [int(self.em_bounding_box[i]/ resTrans[i]) for i in range(len(resTrans))]
-
-
-
-#%%
-w = AugSynapse(551)
-w.areas = data[551].areas
-w.mask = np.transpose(data[551].array)
-w.em_bounding_box = data[551].bounding_box
-
-
-#%%
-seaborn.heatmap(w.mask[2, ::])
-
-#%%
-w.mask.shape
-ch = CHAN_NAMES[-1]
-testDat = [{
-      'rem': rem,
-      'ch_rsc': ChannelResource(ch, collection, experiment, 'image',
-                                datatype='uint16'),
-      'ch': ch,
-      'res': 0,
-      'xrng': [2233, 2242], 
-      'yrng': [2342, 2349], 
-      'zrng': [20, 23], 
-     } for j in list([551])]
-
-dim = testDat[0]
-block = dim['rem'].get_cutout(dim['ch_rsc'], dim['res'], dim['xrng'], dim['yrng'] ,dim['zrng'])
-#
-
-#%%
-w.em_bounding_box
-
-
-
-#%%
-resTrans = [32, 32, 32, 32, 1, 1]
-[int(w.em_bounding_box[i]/ resTrans[i]) for i in range(len(resTrans))]
 
