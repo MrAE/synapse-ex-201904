@@ -184,31 +184,6 @@ class AugmentedSynapse:
         block = di['rem'].get_cutout(di['ch_rsc'], di['res'], di['xrng'], di['yrng'] ,di['zrng'])
         self.channels[str(ch)] = block
 
-
-
-#%%
-fname = "m247514_Take2Site3Annotation_completed_Feb2018_MN_global_synapse_dict.p" 
-
-with open(fname, 'rb') as f:
-    data = pickle.load(f)
-
-
-
-#%%
-W = {i : AugmentedSynapse(i) for i in data}
-
-for w in W:
-    W[w].setSynapse(data[W[w].id])
-
-names = {i: "outputs/id" + str(i).zfill(3) + ".pickle" for i in W}
-
-
-#%%
-for i in names:
-    with open(names[i], "wb") as f:
-        pickle.dump(W[i], f, pickle.HIGHEST_PROTOCOL)
-
-
 #%%
 def drone(args):
     fname, rem, collection, experiment, ch = args
@@ -219,17 +194,46 @@ def drone(args):
     print("retrieving BOSS data:")
     obj.getChannel(rem, collection, experiment, ch)
 
-    print("saving object " + obj.id + ":\n")
+    print("saving object " + str(obj.id) + ":\n")
     with open(fname, "wb") as fout:
         pickle.dump(obj, fout, pickle.HIGHEST_PROTOCOL)
-    
+
+
+
+
+
+if __name__ == "__main__":
+#%%
+    fname = "m247514_Take2Site3Annotation_completed_Feb2018_MN_global_synapse_dict.p" 
+
+    with open(fname, 'rb') as f:
+        data = pickle.load(f)
+
 
 
 #%%
-for ch in CHAN_NAMES:
-    print(ch)
-    for i in names:
-    #Args = [[i, rem, collection, experiment, ch] for i in names]
-        Args = [i, rem, collection, experiment, ch]
-        drone(Args)
+    W = {i : AugmentedSynapse(i) for i in data}
 
+    for w in W:
+        W[w].setSynapse(data[W[w].id])
+
+    names = {i: "outputs/id" + str(i).zfill(3) + ".pickle" for i in W}
+
+
+#%%
+    for i in names:
+        with open(names[i], "wb") as f:
+            pickle.dump(W[i], f, pickle.HIGHEST_PROTOCOL)
+
+
+#%%
+    for ch in [CHAN_NAMES[-1]]:
+        Args = [[[names[i], rem, collection, experiment, ch]] for i in names]
+        print(ch)
+        with ThreadPool(8) as thb:
+            thb.starmap(drone, Args)
+
+
+
+
+#%%
