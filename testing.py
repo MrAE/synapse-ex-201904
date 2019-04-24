@@ -187,14 +187,14 @@ class AugmentedSynapse:
 #%%
 def drone(args):
     fname, rem, collection, experiment, ch = args
-    print("Loading object:")
+    #print("Loading object:")
     with open(fname, "rb") as f:
         obj = pickle.load(f)
 
-    print("retrieving BOSS data:")
+    #print("retrieving BOSS data:")
     obj.getChannel(rem, collection, experiment, ch)
 
-    print("saving object " + str(obj.id) + ":\n")
+    #print("saving object " + str(obj.id) + ":\n")
     with open(fname, "wb") as fout:
         pickle.dump(obj, fout, pickle.HIGHEST_PROTOCOL)
 
@@ -204,7 +204,8 @@ def drone(args):
 
 if __name__ == "__main__":
 #%%
-    fname = "m247514_Take2Site3Annotation_completed_Feb2018_MN_global_synapse_dict.p" 
+    #fname = "m247514_Take2Site3Annotation_completed_Feb2018_MN_global_synapse_dict.p" 
+    fname = "m247514_Take2Site4Annotation_MN_Take2Site4global_synapse_dict.p"
 
     with open(fname, 'rb') as f:
         data = pickle.load(f)
