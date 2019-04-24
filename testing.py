@@ -171,7 +171,6 @@ class AugmentedSynapse:
         
     
     def getChannel(self, rem, collection, experiment, ch):
-        ''' I doubt this is the best way to do this. '''
         di = {
             'rem': rem,
             'ch_rsc': ChannelResource(ch, collection, experiment, 'image',
@@ -187,12 +186,8 @@ class AugmentedSynapse:
 
 
 
-def worker(arg):
-    obj, rem, collection, experiment, ch = arg
-    return obj.getChannel(rem, collection, experiment, ch)
-
 #%%
-fname = "m247514_Take2Site3Annotation_completed_Feb2018_MN_global_synapse_dict.p"
+fname = "m247514_Take2Site3Annotation_completed_Feb2018_MN_global_synapse_dict.p" 
 
 with open(fname, 'rb') as f:
     data = pickle.load(f)
@@ -206,7 +201,6 @@ for w in W:
     W[w].setSynapse(data[W[w].id])
 
 names = {i: "outputs/id" + str(i).zfill(3) + ".pickle" for i in W}
-
 
 
 #%%
@@ -225,181 +219,17 @@ def drone(args):
     print("retrieving BOSS data:")
     obj.getChannel(rem, collection, experiment, ch)
 
-    print("saving object:")
+    print("saving object " + obj.id + ":\n")
     with open(fname, "wb") as fout:
         pickle.dump(obj, fout, pickle.HIGHEST_PROTOCOL)
     
 
 
 #%%
-for ch in [CHAN_NAMES[-1]]:
-    Args = [[i, rem, collection, experiment, ch] for i in names]
-    with ThreadPool(6) as tpb:
-    ##    out = tpb.map(drone, )
-        tpb.starmap(drone, Args)
-
-
-#### ALL good above this line
-#### Testing below
-
-#%%
-i = 1
-with open(names[i], "wb") as f:
-    pickle.dump(W[i], f, pickle.HIGHEST_PROTOCOL)
-
-#%%
-with open(names[1], 'rb') as f:
-    win = pickle.load(f)
-
-#%%
-j = 123
-W[j].getChannel(rem, collection, experiment, CHAN_NAMES[2])
-W[j].getChannel(rem, collection, experiment, CHAN_NAMES[-1])
-W[j].channels
-
-#%%
-W[j].bounding_box
-
-
-#%%
-W[j].areas
-
-#%%
-W[j].anno_array.shape
-
-#%%
-H = np.hstack([W[j].channels[CHAN_NAMES[2]], W[j].channels[CHAN_NAMES[-1]]])
-H.shape
-
-#%%
-W[j].channels[CHAN_NAMES[2]]
-
-
-
-
-#%%
-W[j].bounding_box
-
-#%%
-dx = W[j].bounding_box[1] - W[j].bounding_box[0]
-dy = W[j].bounding_box[3] - W[j].bounding_box[2]
-dz = W[j].bounding_box[5] - W[j].bounding_box[4]
-
-
-WJarray = np.zeros(dx, dy, dz)
-
-nw = np.where(W[j].anno_array == W[j].id)
-
-xs = nw[0] 
-ys = nw[1]
-zs = nw[2]
-
-
-
-#%%
-A.getChannel(rem, collection, experiment, CHAN_NAMES[-1])
-
-#%%
-with ThreadPool(4) as tpb:
-        #out = tpb.map(getID, ba, bb, bc)
-        #out = tpb.starmap(getID, blocks)
-
-#%%
-#%%
-#%%
-#%%
-#%%
-
-
-
-
-#%%
-fig, axs = plt.subplots(nrows = 3)
-tmp = 1
-for names in w.channels:
-    seaborn.heatmap(w.channels[names][0, ::], tmp)
-
-
-#%%
-
-np.max(w.channels[CHAN_NAMES[2]][2, :, :])
-
-#%%
-fig, axs = plt.subplots(ncols=1)
-a = w.channels[CHAN_NAMES[-1]]
-
-b = np.vstack([a[0, ::], a[1, ::], a[2, ::]])
-seaborn.heatmap(b)
-
-#%%
-fig, axs = plt.subplots(ncols=3)
-w.areas[0]
-w.areas[1]
-w.areas[2]
-
-#%%
-
-w = {id : AugmentedSynapse(id) for id in data}
-
-for id in data:
-    w[id].setSynapse(data[id])
-
-
-
-
-
-#%%
-print(data[j].bounding_box)
-print(data[j].bounding_box[0:2])
-print(data[j].bounding_box[2:4])
-print(data[j].bounding_box[4:6])
-
-
-
-
-#%%
-## For getting masked bounding box around centroid of annotation
-ch = CHAN_NAMES[-1]
-di = [{
-      'rem': rem,
-      'ch_rsc': ChannelResource(ch, collection, experiment, 'image',
-                                datatype='uint16'),
-      'ch': ch,
-      'res': 0,
-      'xrng': [int(data[j].bounding_box[0:2][0]/32), int(data[j].bounding_box[0:2][1]/32)],
-      'yrng': [int(data[j].bounding_box[2:4][0]/32), int(data[j].bounding_box[2:4][1]/32)],
-      'zrng': [int(data[j].bounding_box[4:6][0]), int(data[j].bounding_box[4:6][1])],
-     } for j in list([551])]
-
-
-#%%
-dim = di[0]
-block = dim['rem'].get_cutout(dim['ch_rsc'], dim['res'], dim['xrng'], dim['yrng'] ,dim['zrng'])
-#
-seaborn.heatmap(block[0])
-seaborn.heatmap(block[1])
-seaborn.heatmap(block[2])
-
-
-#%%
-ch = CHAN_NAMES[2]
-testDat = [{
-      'rem': rem,
-      'ch_rsc': ChannelResource(ch, collection, experiment, 'image',
-                                datatype='uint16'),
-      'ch': ch,
-      'res': 0,
-      'xrng': [2233, 2242], 
-      'yrng': [2342, 2349], 
-      'zrng': [20, 23], 
-     } for j in list([551])]
-
-dim = testDat[0]
-block = dim['rem'].get_cutout(dim['ch_rsc'], dim['res'], dim['xrng'], dim['yrng'] ,dim['zrng'])
-#
-
-
-
-
-
+for ch in CHAN_NAMES:
+    print(ch)
+    for i in names:
+    #Args = [[i, rem, collection, experiment, ch] for i in names]
+    Args = [i, rem, collection, experiment, ch]
+    drone(Args)
 
