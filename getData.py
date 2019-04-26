@@ -1,5 +1,6 @@
 
 #%%
+import synapseClasses
 import intern
 import math
 import argparse
